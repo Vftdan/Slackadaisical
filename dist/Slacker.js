@@ -24,7 +24,7 @@ var Slacker = function () {
         this.screen = blessed.screen({
             smartCSR: true,
             log: process.env.PWD + '/slacker.log',
-            debug: true,
+            debug: false,
             dockBorders: true,
             autoPadding: true,
             ignoreDockContrast: true,
@@ -104,6 +104,7 @@ var Slacker = function () {
     }, {
         key: 'suspend',
         value: function suspend() {
+            //TODO
             this.screen.leave();
             //this.screen.sigtstp();
             process.kill(process.pid, 'SIGSTOP');

@@ -14,7 +14,7 @@ export default class Slacker {
         this.screen = blessed.screen({
             smartCSR: true,
             log: process.env.PWD + '/slacker.log',
-            debug: true,
+            debug: false,
             dockBorders: true,
             autoPadding: true,
             ignoreDockContrast: true,

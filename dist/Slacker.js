@@ -12,6 +12,7 @@ var blessed = require('blessed');
 var SlackAPI = require('./SlackAPI');
 var ChannelsList = require('./ChannelsList');
 var ChannelBox = require('./Channel');
+var ExLine = require('./ExLine');
 var moment = require('moment');
 
 var Slacker = function () {
@@ -32,6 +33,7 @@ var Slacker = function () {
 
         this.api = new SlackAPI(this.token, this.screen);
         this.channelsList = new ChannelsList(this.screen, this.api);
+        this.exLine = new ExLine(this.screen);
         this.channel = null;
         this.channelBox = null;
 
@@ -55,17 +57,33 @@ var Slacker = function () {
         value: function init() {
             var _this = this;
 
-            this.screen.key(['escape', 'C-c'], function (ch, key) {
+            this.exLine.commands.q = function () {
+                return process.exit(0);
+            };
+
+            this.exLine.commands.stop = this.exLine.commands.suspend = function () {
+                return _this.suspend();
+            };
+
+            this.screen.key(['C-c'], function (ch, key) {
                 return process.exit(0);
             });
 
-            this.screen.key(['C-l'], function (ch, key) {
+            this.screen.key(['C-z'], function (ch, key) {
+                return _this.suspend();
+            });
+
+            this.screen.key([':'], function (ch, key) {
+                _this.exLine.textbox.focus();
+            });
+
+            this.screen.key(['C-l', 'escape'], function (ch, key) {
                 if (_this.channelsList) {
                     _this.channelsList.box.focus();
                 }
             });
 
-            this.screen.key(['C-o'], function (ch, key) {
+            this.screen.key(['C-o', 'i'], function (ch, key) {
                 if (_this.channelBox && _this.channelBox.messageForm && _this.channelBox.messageForm.textbox) {
                     _this.channelBox.messageForm.textbox.focus();
                 }
@@ -82,6 +100,16 @@ var Slacker = function () {
             });
 
             this.channelsList.init();
+        }
+    }, {
+        key: 'suspend',
+        value: function suspend() {
+            this.screen.leave();
+            //this.screen.sigtstp();
+            process.kill(process.pid, 'SIGSTOP');
+            this.screen.alloc();
+            this.screen.render();
+            this.screen.program.lrestoreCursor('pause', true);
         }
     }]);
 

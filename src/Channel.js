@@ -16,7 +16,7 @@ export default class ChannelBox {
             top: 'top',
             left: '30%',
             width: '70%',
-            height: '100%',
+            height: '100%-4',
             input: true,
             mouse: true,
             border: {

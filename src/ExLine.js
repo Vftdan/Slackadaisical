@@ -1,20 +1,19 @@
 var blessed = require('blessed');
 
-export default class MessageForm {
+export default class ExLine {
 
-    constructor(channel) {
-        this.channel = channel;
-        this.screen = this.channel.screen;
-        this.api = this.channel.api;
+    constructor(screen) {
+        this.screen = screen;
+
+        this.commands = {};
 
         this.form = blessed.form({
-            parent: this.channel.box,
+            parent: this.screen,
             keys: true,
             left: 0,
             bottom: 0,
-            width: '100%-2',
+            width: '100%',
             height: 4,
-            // border: {type: 'line'}
         });
 
         this.textbox = blessed.textbox({
@@ -27,7 +26,7 @@ export default class MessageForm {
             mouse: true,
             keys: true,
             inputOnFocus: true,
-            label: 'Write Message (i)',
+            label: 'Ex (:)',
             border: {type: 'line', fg: 'yellow' }
         });
 
@@ -36,16 +35,20 @@ export default class MessageForm {
         });
 
         this.form.on('submit', (data) => {
-            const message = data.textbox;
-            if (message.length > 0) {
-                this.api.postMessage(this.channel.channel, message, (err, resp, body) => {
-                    this.form.reset();
-                    this.screen.render();
-                    this.textbox.focus();
-                });
-            }
-
+            const command = data.textbox;
+            this.execute(command);
+            this.form.reset();
         });
+    }
+
+    execute(command) {
+        if (command.length > 0) {
+            const argv = command.trim().split(/\s+/g);
+            if (argv.length < 1)
+                return;
+            if (this.commands.propertyIsEnumerable(argv[0]))
+                return this.commands[argv[0]].apply(null, argv.slice(1));
+        }
     }
 
     destroy() {
@@ -54,4 +57,4 @@ export default class MessageForm {
     }
 }
 
-module.exports = MessageForm;
+module.exports = ExLine;

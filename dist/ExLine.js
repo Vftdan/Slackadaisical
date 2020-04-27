@@ -10,24 +10,23 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var blessed = require('blessed');
 
-var MessageForm = function () {
-    function MessageForm(channel) {
+var ExLine = function () {
+    function ExLine(screen) {
         var _this = this;
 
-        _classCallCheck(this, MessageForm);
+        _classCallCheck(this, ExLine);
 
-        this.channel = channel;
-        this.screen = this.channel.screen;
-        this.api = this.channel.api;
+        this.screen = screen;
+
+        this.commands = {};
 
         this.form = blessed.form({
-            parent: this.channel.box,
+            parent: this.screen,
             keys: true,
             left: 0,
             bottom: 0,
-            width: '100%-2',
+            width: '100%',
             height: 4
-            // border: {type: 'line'}
         });
 
         this.textbox = blessed.textbox({
@@ -40,7 +39,7 @@ var MessageForm = function () {
             mouse: true,
             keys: true,
             inputOnFocus: true,
-            label: 'Write Message (i)',
+            label: 'Ex (:)',
             border: { type: 'line', fg: 'yellow' }
         });
 
@@ -49,18 +48,22 @@ var MessageForm = function () {
         });
 
         this.form.on('submit', function (data) {
-            var message = data.textbox;
-            if (message.length > 0) {
-                _this.api.postMessage(_this.channel.channel, message, function (err, resp, body) {
-                    _this.form.reset();
-                    _this.screen.render();
-                    _this.textbox.focus();
-                });
-            }
+            var command = data.textbox;
+            _this.execute(command);
+            _this.form.reset();
         });
     }
 
-    _createClass(MessageForm, [{
+    _createClass(ExLine, [{
+        key: 'execute',
+        value: function execute(command) {
+            if (command.length > 0) {
+                var argv = command.trim().split(/\s+/g);
+                if (argv.length < 1) return;
+                if (this.commands.propertyIsEnumerable(argv[0])) return this.commands[argv[0]].apply(null, argv.slice(1));
+            }
+        }
+    }, {
         key: 'destroy',
         value: function destroy() {
             this.form.destroy();
@@ -68,10 +71,10 @@ var MessageForm = function () {
         }
     }]);
 
-    return MessageForm;
+    return ExLine;
 }();
 
-exports.default = MessageForm;
+exports.default = ExLine;
 
 
-module.exports = MessageForm;
+module.exports = ExLine;
